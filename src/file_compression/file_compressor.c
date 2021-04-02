@@ -72,7 +72,6 @@ void file_compressor_compress(FILE* o,char** fpl,FILE** fpfl,uint32_t fpll){
 		free(fll);
 		return;
 	}
-
 	tree_elem_t t[256];
 	__stosq((uint64_t*)t,0,256*sizeof(tree_elem_t)/sizeof(uint64_t));
 	uint8_t mx=1;
