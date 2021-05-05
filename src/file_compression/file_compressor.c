@@ -1,6 +1,7 @@
 #include <file_compressor.h>
 #include <intrin.h>
 #include <windows.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -348,7 +349,7 @@ void file_compressor_info(FILE* f){
 			}
 		}
 		t_sz+=sz;
-		printf("  '%s': %llub\n",fp_bf,sz);
+		printf("  '%s': %"PRIu64"b\n",fp_bf,sz);
 		uint32_t bf=0;
 		uint8_t bfl=0;
 		i=0;
@@ -382,7 +383,7 @@ void file_compressor_info(FILE* f){
 		}
 	}
 _end:
-	printf("Compression Ratio: %llu -> %llu (%+.2f%%)\n",t_sz,f_sz,((float)f_sz-t_sz)/t_sz*100);
+	printf("Compression Ratio: %"PRIu64" -> %"PRIu64" (%+.2f%%)\n",t_sz,f_sz,((float)f_sz-t_sz)/t_sz*100);
 	while (tl){
 		tl--;
 		if ((t+tl)->l){
@@ -457,7 +458,11 @@ void file_compressor_decompress(char* o,FILE* f){
 			}
 		}
 		FILE* of=NULL;
+#ifdef _MSC_VER
 		if (fopen_s(&of,fp_bf,"wb")){
+#else
+		if (!(of=fopen(fp_bf,"wb"))){
+#endif
 			of=NULL;
 		}
 		uint64_t sz=fgetc(f);

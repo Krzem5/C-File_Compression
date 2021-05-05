@@ -34,14 +34,14 @@ _help:
 		if (*e=='-'){
 			if (*(e+1)=='m'&&!*(e+2)){
 				if (!argc){
-					printf("Unterminated Switch!\n\n");
+					printf("Unterminated Switch!\n");
 					goto _help;
 				}
 				e=*argv;
 				argc--;
 				argv++;
 				if (*(e+1)){
-					printf("Unknown Mode '%s'!\n\n",e);
+					printf("Unknown Mode '%s'!\n",e);
 					goto _help;
 				}
 				switch (*e){
@@ -55,7 +55,7 @@ _help:
 						m=MODE_INFO;
 						break;
 					default:
-						printf("Unknown Mode '%s'!\n\n",e);
+						printf("Unknown Mode '%s'!\n",e);
 						goto _help;
 				}
 			}
@@ -64,7 +64,7 @@ _help:
 			}
 			else if (*(e+1)=='o'&&!*(e+2)){
 				if (!argc){
-					printf("Unterminated Switch!\n\n");
+					printf("Unterminated Switch!\n");
 					goto _help;
 				}
 				ofp=*argv;
@@ -72,7 +72,7 @@ _help:
 				argv++;
 			}
 			else{
-				printf("Unknown Switch '%s'!\n\n",e);
+				printf("Unknown Switch '%s'!\n",e);
 				goto _help;
 			}
 		}
@@ -81,35 +81,43 @@ _help:
 			ifpl=realloc(ifpl,ifpll*sizeof(char*));
 			*(ifpl+ifpll-1)=(char*)e;
 			ifpfl=realloc(ifpfl,ifpll*sizeof(FILE*));
-			errno_t fe=fopen_s(ifpfl+ifpll-1,e,"rb");
-			if (fe){
-				printf("File '%s' Not Found!\n\n",e);
+#ifdef _MSC_VER
+			if (fopen_s(ifpfl+ifpll-1,e,"rb")){
+#else
+			if (!(*(ifpfl+ifpll-1)=fopen(e,"rb"))){
+#endif
+				printf("File '%s' Not Found!\n",e);
 				return 1;
 			}
 		}
 	}
 	if (!ifpll){
-		printf("No Input Files Supplied!\n\n");
+		printf("No Input Files Supplied!\n");
 		goto _help;
 	}
 	if (m!=MODE_COMPRESS&&ifpll>1){
-		printf("The 'info' Mode Supports only One File!\n\n");
+		printf("The 'info' Mode Supports only One File!\n");
 		goto _help;
 	}
 	if (m!=MODE_INFO&&!ofp){
-		printf("No Output File Supplied!\n\n");
+		printf("No Output File Supplied!\n");
 		goto _help;
 	}
 	switch (m){
 		case MODE_COMPRESS:
-			FILE* of;
-			errno_t fe=fopen_s(&of,ofp,"wb");
-			if (fe){
-				printf("Unable to Open File '%s'!\n\n",ofp);
-				return 1;
+			{
+				FILE* of;
+#ifdef _MSC_VER
+				if (fopen_s(&of,ofp,"wb")){
+#else
+				if (!(of=fopen(ofp,"wb"))){
+#endif
+					printf("Unable to Open File '%s'!\n",ofp);
+					return 1;
+				}
+				file_compressor_compress(of,ifpl,ifpfl,ifpll);
+				fclose(of);
 			}
-			file_compressor_compress(of,ifpl,ifpfl,ifpll);
-			fclose(of);
 			break;
 		case MODE_DECOMPRESS:
 			file_compressor_decompress((char*)ofp,*ifpfl);
